@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Gambling Site Blocker</string>
+    <string name="start_protection">Start Protection</string>
+    <string name="stop_protection">Stop Protection</string>
+</resources>

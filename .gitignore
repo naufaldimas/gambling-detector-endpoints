@@ -1,0 +1,73 @@
+# ============================================================
+#  Gambling Detector Prototype — .gitignore
+# ============================================================
+
+# -------------------- OS & Editors ----------------------------
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+*.swo
+*~
+
+# -------------------- IDE / Editor ----------------------------
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+.project
+.classpath
+.settings/
+
+# -------------------- Python ----------------------------------
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+build/
+*.egg
+.venv/
+venv/
+env/
+.env
+
+# -------------------- Android / Gradle ------------------------
+android-app/.gradle/
+android-app/build/
+android-app/app/build/
+android-app/local.properties
+android-app/captures/
+android-app/.externalNativeBuild/
+android-app/.cxx/
+*.apk
+*.aab
+*.ap_
+*.dex
+*.class
+
+# -------------------- Dataset (large binary assets) -----------
+# The raw dataset files are too large for Git (~4GB).
+# See README.md for instructions on obtaining the dataset.
+ml-training/dataset/dataset_html/
+ml-training/dataset/dataset_image/
+ml-training/dataset/final_dataset.csv
+
+# Keep the smaller generated dataset (synthetic, ~52KB) trackable
+# ml-training/dataset.csv  — intentionally tracked
+
+# -------------------- Thesis / Paper Documents ----------------
+# Personal thesis documents — not part of the software project
+*.docx
+
+# -------------------- Paper Generation Scripts ----------------
+build_full_paper.py
+generate_paper.py
+conference-template-a4.docx
+
+# -------------------- Graphify (auto-generated) ---------------
+graphify-out/
+
+# -------------------- Agents Config ---------------------------
+.agents/

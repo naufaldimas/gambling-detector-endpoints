@@ -1,0 +1,73 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="8dp"
+    app:cardBackgroundColor="@color/bg_card"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="0dp"
+    app:strokeColor="@color/border_subtle"
+    app:strokeWidth="1dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:padding="12dp">
+
+        <ImageView
+            android:id="@+id/iconAction"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:padding="8dp"
+            android:src="@drawable/ic_block"
+            android:background="@drawable/bg_badge_blocked"
+            android:contentDescription="Action Icon" />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:layout_marginStart="12dp">
+
+            <TextView
+                android:id="@+id/textDomain"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="slotgacor.xyz"
+                android:textColor="@color/text_primary"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                android:ellipsize="middle"
+                android:singleLine="true" />
+
+            <TextView
+                android:id="@+id/textDetails"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:text="Score: 94.2% • 16:24:05"
+                android:textColor="@color/text_secondary"
+                android:textSize="12sp" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/badgeAction"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="BLOCKED"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            android:textColor="@color/blocked_red"
+            android:background="@drawable/bg_badge_blocked"
+            android:paddingStart="8dp"
+            android:paddingEnd="8dp"
+            android:paddingTop="4dp"
+            android:paddingBottom="4dp" />
+
+    </LinearLayout>
+
+</com.google.android.material.card.MaterialCardView>
