@@ -96,6 +96,27 @@ GAMBLING_COMPOUNDS = [
     "bocorangacor", "rajawin", "kingwin", "hokiterus", "gudangcuan",
 ]
 
+# Adversarial evasion patterns & typos commonly used in Indonesian gambling domains
+# (e.g. "bisastol.com" using "stol" instead of "slot", or leetspeak like "sl0t")
+GAMBLING_TYPO_MAP = {
+    "stol": "slot", "solt": "slot", "slt": "slot", "slott": "slot", "zlot": "slot", "szlot": "slot",
+    "gakor": "gacor", "gakcor": "gacor", "gcwr": "gacor",
+    "tgl": "togel", "togell": "togel",
+    "jud1": "judi", "jvd1": "judi",
+    "sl0t": "slot", "g4c0r": "gacor", "t0gel": "togel", "m4xw1n": "maxwin",
+    "c4s1n0": "casino", "p0k3r": "poker",
+}
+
+# Contextual affixes that frequently pair with evasive typos (e.g. bisa + stol)
+GAMBLING_AFFIXES = {
+    "bisa", "link", "daftar", "login", "agen", "situs", "raja", "klik", "ayo",
+    "mari", "coba", "auto", "pasti", "gudang", "zona", "pusat", "depo", "wd",
+    "play", "win", "hoki", "cuan", "official", "vip", "portal", "web", "idn",
+}
+
+# Legitimate dictionary words containing typo substrings (to prevent false positives)
+TYPO_EXCLUSIONS = {"pistol", "bristol", "apostol", "costol"}
+
 SUSPICIOUS_TLDS = {
     "xyz", "top", "club", "online", "site", "info", "vip", "biz",
     "live", "fun", "click", "link", "icu", "cc", "me", "pro",
@@ -336,6 +357,27 @@ def _extract_base(domain: str) -> dict:
     if "win" in sld and ("link" in sld or has_lucky_num == 1):
         has_compound = 1
         matched_keyword_len += 6
+
+    # Adversarial evasion & typo detection (e.g. bisastol.com -> "stol" typo of "slot")
+    # Detects transposed letters and leetspeak combined with gambling affixes or digits
+    is_typo_excluded = any(exc in sld for exc in TYPO_EXCLUSIONS)
+    if not is_typo_excluded:
+        for typo, canon in GAMBLING_TYPO_MAP.items():
+            if typo in sld:
+                idx = sld.find(typo)
+                prefix = sld[:idx]
+                suffix = sld[idx + len(typo):]
+                is_affix = (prefix in GAMBLING_AFFIXES or suffix in GAMBLING_AFFIXES)
+                is_digit = (prefix.isdigit() or suffix.isdigit() or has_lucky_num == 1)
+                is_standalone = (not prefix and not suffix)
+
+                if is_affix or is_digit or is_standalone:
+                    keyword_hits += 1
+                    has_compound = 1
+                    matched_keyword_len += len(typo)
+                    if is_affix:
+                        matched_keyword_len += len(prefix if prefix in GAMBLING_AFFIXES else suffix)
+                    break
 
     # Keyword density in SLD
     sld_len = len(sld)

@@ -60,6 +60,9 @@ class MainActivity : AppCompatActivity() {
     private lateinit var textTestResultBadge: TextView
     private lateinit var textTestResultDetails: TextView
     private lateinit var textTestResultSubDetails: TextView
+    
+    private lateinit var inputDashboardIp: EditText
+    private lateinit var btnSaveIp: MaterialButton
 
     private lateinit var filterChipGroup: ChipGroup
     private lateinit var emptyStateText: TextView
@@ -128,6 +131,15 @@ class MainActivity : AppCompatActivity() {
         textTestResultBadge = findViewById(R.id.textTestResultBadge)
         textTestResultDetails = findViewById(R.id.textTestResultDetails)
         textTestResultSubDetails = findViewById(R.id.textTestResultSubDetails)
+        
+        inputDashboardIp = findViewById(R.id.inputDashboardIp)
+        btnSaveIp = findViewById(R.id.btnSaveIp)
+        
+        val prefs = getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
+        val savedUrl = prefs.getString("dashboard_url", "")
+        if (!savedUrl.isNullOrEmpty()) {
+            inputDashboardIp.setText(savedUrl)
+        }
 
         filterChipGroup = findViewById(R.id.filterChipGroup)
         emptyStateText = findViewById(R.id.emptyStateText)
@@ -142,6 +154,23 @@ class MainActivity : AppCompatActivity() {
             } else {
                 stopVpnService()
             }
+        }
+        
+        // Save Dashboard IP Config
+        btnSaveIp.setOnClickListener {
+            var url = inputDashboardIp.text?.toString()?.trim() ?: ""
+            if (url.isNotEmpty() && !url.startsWith("http")) {
+                url = "http://$url"
+            }
+            if (url.endsWith("/")) {
+                url = url.substring(0, url.length - 1)
+            }
+            
+            val prefs = getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
+            prefs.edit().putString("dashboard_url", url).apply()
+            
+            inputDashboardIp.setText(url)
+            Toast.makeText(this, "Dashboard URL saved", Toast.LENGTH_SHORT).show()
         }
 
         // Live Domain / URL Tester Button
@@ -215,26 +244,22 @@ class MainActivity : AppCompatActivity() {
         isProtectionOn = active
         if (active) {
             statusDot.background = ContextCompat.getDrawable(this, R.drawable.bg_status_dot_on)
-            statusTitle.text = "Protection is ACTIVE"
+            statusTitle.text = "Connected"
             statusTitle.setTextColor(ContextCompat.getColor(this, R.color.status_active))
-            statusSubtitle.text = "Real-time DNS filtering actively guarding your network against gambling domains."
-            heroCard.setCardBackgroundColor(ContextCompat.getColor(this, R.color.status_active_bg))
-            heroCard.strokeColor = ContextCompat.getColor(this, R.color.status_active_border)
+            statusSubtitle.text = "You are protected."
 
-            toggleButton.text = getString(R.string.stop_protection)
-            toggleButton.setBackgroundColor(ContextCompat.getColor(this, R.color.blocked_red))
-            toggleButton.setIconResource(R.drawable.ic_block)
+            toggleButton.text = "TAP TO\nDISCONNECT"
+            toggleButton.setBackgroundColor(ContextCompat.getColor(this, R.color.status_active_border))
+            toggleButton.icon = null
         } else {
             statusDot.background = ContextCompat.getDrawable(this, R.drawable.bg_status_dot_off)
-            statusTitle.text = "Protection is OFF"
+            statusTitle.text = "Not Connected"
             statusTitle.setTextColor(ContextCompat.getColor(this, R.color.text_primary))
-            statusSubtitle.text = "Turn on protection to block gambling websites while keeping normal internet fast."
-            heroCard.setCardBackgroundColor(ContextCompat.getColor(this, R.color.bg_card_secondary))
-            heroCard.strokeColor = ContextCompat.getColor(this, R.color.status_inactive_border)
+            statusSubtitle.text = "Your network is unprotected."
 
-            toggleButton.text = getString(R.string.start_protection)
-            toggleButton.setBackgroundColor(ContextCompat.getColor(this, R.color.primary))
-            toggleButton.setIconResource(R.drawable.ic_check)
+            toggleButton.text = "TAP TO\nCONNECT"
+            toggleButton.setBackgroundColor(ContextCompat.getColor(this, R.color.status_inactive_border))
+            toggleButton.icon = null
         }
     }
 

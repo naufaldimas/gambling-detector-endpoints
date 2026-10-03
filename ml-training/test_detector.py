@@ -118,8 +118,11 @@ def run_tests():
         ('depopulsa10k.site', 1),
         ('bandartogel88.asia', 1),
         ('maxwin-sensasional.bet', 1),
-
+        ('bisastol.com', 1),                      # Adversarial typo evasion (stol -> slot + bisa affix)
+        ('stol88.xyz', 1),                        # Adversarial typo + lucky number
+        
         # === LEGIT domains (from dataset label=0) ===
+        ('pistol.com', 0),                        # Legitimate dictionary word (exclusion check)
         ('1001fonts.com', 0),                     # Font download site
         ('10fastfingers.com', 0),                 # Typing test site
         ('11zon.com', 0),                         # PDF tool site

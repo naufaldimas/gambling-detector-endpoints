@@ -83,6 +83,27 @@ object DomainFeatureExtractor {
         "bocorangacor", "rajawin", "kingwin", "hokiterus", "gudangcuan",
     )
 
+    // Adversarial evasion patterns & typos commonly used in Indonesian gambling domains
+    // (e.g. "bisastol.com" using "stol" instead of "slot", or leetspeak like "sl0t")
+    private val GAMBLING_TYPO_MAP = mapOf(
+        "stol" to "slot", "solt" to "slot", "slt" to "slot", "slott" to "slot", "zlot" to "slot", "szlot" to "slot",
+        "gakor" to "gacor", "gakcor" to "gacor", "gcwr" to "gacor",
+        "tgl" to "togel", "togell" to "togel",
+        "jud1" to "judi", "jvd1" to "judi",
+        "sl0t" to "slot", "g4c0r" to "gacor", "t0gel" to "togel", "m4xw1n" to "maxwin",
+        "c4s1n0" to "casino", "p0k3r" to "poker",
+    )
+
+    // Contextual affixes that frequently pair with evasive typos (e.g. bisa + stol)
+    private val GAMBLING_AFFIXES = setOf(
+        "bisa", "link", "daftar", "login", "agen", "situs", "raja", "klik", "ayo",
+        "mari", "coba", "auto", "pasti", "gudang", "zona", "pusat", "depo", "wd",
+        "play", "win", "hoki", "cuan", "official", "vip", "portal", "web", "idn",
+    )
+
+    // Legitimate dictionary words containing typo substrings (to prevent false positives)
+    private val TYPO_EXCLUSIONS = setOf("pistol", "bristol", "apostol", "costol")
+
     // Keep in sync with SUSPICIOUS_TLDS in ml-training/features.py
     private val SUSPICIOUS_TLDS = setOf(
         "xyz", "top", "club", "online", "site", "info", "vip", "biz",
@@ -207,6 +228,35 @@ object DomainFeatureExtractor {
         if (sld.contains("win") && (sld.contains("link") || hasLuckyNum == 1)) {
             hasCompound = 1
             matchedKeywordLen += 6
+        }
+
+        // Adversarial evasion & typo detection (e.g. bisastol.com -> "stol" typo of "slot")
+        // Detects transposed letters and leetspeak combined with gambling affixes or digits
+        val isTypoExcluded = TYPO_EXCLUSIONS.any { sld.contains(it) }
+        if (!isTypoExcluded) {
+            for ((typo, _) in GAMBLING_TYPO_MAP) {
+                val idx = sld.indexOf(typo)
+                if (idx != -1) {
+                    val prefix = sld.substring(0, idx)
+                    val suffix = sld.substring(idx + typo.length)
+                    val isAffix = prefix in GAMBLING_AFFIXES || suffix in GAMBLING_AFFIXES
+                    val isDigit = (prefix.isNotEmpty() && prefix.all { it.isDigit() }) ||
+                        (suffix.isNotEmpty() && suffix.all { it.isDigit() }) ||
+                        hasLuckyNum == 1
+                    val isStandalone = prefix.isEmpty() && suffix.isEmpty()
+
+                    if (isAffix || isDigit || isStandalone) {
+                        keywordHits += 1
+                        hasCompound = 1
+                        matchedKeywordLen += typo.length
+                        if (isAffix) {
+                            val matchedAffix = if (prefix in GAMBLING_AFFIXES) prefix else suffix
+                            matchedKeywordLen += matchedAffix.length
+                        }
+                        break
+                    }
+                }
+            }
         }
 
         val sldLen = sld.length

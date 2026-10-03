@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Gambling Detector — Monitoring Dashboard for device management, DNS detection analytics, and dataset quality review.">
+  <title>Gambling Detector — Monitoring Dashboard</title>
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛡️</text></svg>">
+</head>
+<body>
+
+  <!-- ═══════════════ NAVBAR ═══════════════ -->
+  <nav class="navbar" id="navbar">
+    <div class="navbar-brand">
+      <div class="navbar-logo">🛡️</div>
+      <div>
+        <div class="navbar-title">Gambling Detector</div>
+        <div class="navbar-subtitle">Monitoring Dashboard</div>
+      </div>
+    </div>
+
+    <button class="navbar-toggle" id="navbarToggle" aria-label="Toggle navigation">☰</button>
+
+    <ul class="navbar-nav" id="navbarNav">
+      <li><button class="nav-link active" data-page="dashboard"><span class="nav-icon">📊</span> Dashboard</button></li>
+      <li><button class="nav-link" data-page="devices"><span class="nav-icon">📱</span> Devices</button></li>
+      <li><button class="nav-link" data-page="websites"><span class="nav-icon">🌐</span> Websites</button></li>
+      <li><button class="nav-link" data-page="dataset"><span class="nav-icon">📚</span> Dataset</button></li>
+    </ul>
+
+    <div class="navbar-search" id="navbarSearch">
+      <span class="search-icon">🔍</span>
+      <input type="text" id="globalSearch" placeholder="Search devices, domains, IP..." autocomplete="off">
+    </div>
+
+    <div class="navbar-status">
+      <div class="status-dot"></div>
+      <span id="lastUpdated">Updating...</span>
+    </div>
+  </nav>
+
+  <!-- ═══════════════ MAIN CONTENT ═══════════════ -->
+  <main class="main-content">
+
+    <!-- ─────── DASHBOARD PAGE ─────── -->
+    <section class="page-section active" id="page-dashboard">
+      <div class="page-header">
+        <h1>📊 Dashboard Overview</h1>
+        <p>Ringkasan monitoring device, deteksi DNS, dan status dataset</p>
+      </div>
+
+      <!-- Stats Cards -->
+      <div class="stats-grid" id="statsGrid">
+        <!-- Populated by JS -->
+      </div>
+
+      <!-- Two-column: Devices table + Activity feed -->
+      <div class="content-grid two-col">
+        <!-- Recent Devices -->
+        <div class="panel">
+          <div class="panel-header">
+            <h2 class="panel-title"><span class="panel-icon">📱</span> Device Terhubung <span class="panel-badge" id="dashDeviceCount">0</span></h2>
+            <div class="panel-actions">
+              <div class="filter-group">
+                <button class="filter-btn active" data-filter="all" data-target="dash-devices">All</button>
+                <button class="filter-btn" data-filter="online" data-target="dash-devices">Online</button>
+                <button class="filter-btn" data-filter="idle" data-target="dash-devices">Idle</button>
+                <button class="filter-btn" data-filter="offline" data-target="dash-devices">Offline</button>
+              </div>
+            </div>
+          </div>
+          <div class="data-table-wrapper">
+            <table class="data-table" id="dashDevicesTable">
+              <thead>
+                <tr>
+                  <th>Device</th>
+                  <th>IP Address</th>
+                  <th>Status</th>
+                  <th>VPN</th>
+                  <th>Queries</th>
+                  <th>Blocked</th>
+                  <th>Last Active</th>
+                </tr>
+              </thead>
+              <tbody id="dashDevicesBody">
+                <!-- Populated by JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Activity Feed -->
+        <div class="panel">
+          <div class="panel-header">
+            <h2 class="panel-title"><span class="panel-icon">⚡</span> Aktivitas Terbaru</h2>
+            <div class="filter-group">
+              <button class="filter-btn active" data-filter="all" data-target="activities">All</button>
+              <button class="filter-btn" data-filter="block" data-target="activities">Blocked</button>
+              <button class="filter-btn" data-filter="allow" data-target="activities">Allowed</button>
+            </div>
+          </div>
+          <div class="activity-feed" id="activityFeed">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Info Cards -->
+      <div class="info-cards-grid">
+        <div class="info-card">
+          <div class="info-card-title">⚠️ Perhatian</div>
+          <ul class="info-card-list" id="alertsList">
+            <!-- Populated by JS -->
+          </ul>
+        </div>
+        <div class="info-card">
+          <div class="info-card-title">🏆 Domain Paling Sering Diblokir</div>
+          <ul class="info-card-list" id="topBlockedList">
+            <!-- Populated by JS -->
+          </ul>
+        </div>
+        <div class="info-card">
+          <div class="info-card-title">🧠 Info Model</div>
+          <ul class="info-card-list" id="modelInfoList">
+            <!-- Populated by JS -->
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─────── DEVICES PAGE ─────── -->
+    <section class="page-section" id="page-devices">
+      <div class="page-header">
+        <h1>📱 Device Management</h1>
+        <p>Daftar semua perangkat yang pernah/sedang terhubung dengan aplikasi</p>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header">
+          <h2 class="panel-title"><span class="panel-icon">📱</span> Semua Device <span class="panel-badge" id="devicesPageCount">0</span></h2>
+          <div class="panel-actions">
+            <div class="panel-search">
+              <span class="search-icon">🔍</span>
+              <input type="text" id="devicesSearch" placeholder="Cari device, IP, MAC..." autocomplete="off">
+            </div>
+            <div class="filter-group">
+              <button class="filter-btn active" data-filter="all" data-target="devices-page">All</button>
+              <button class="filter-btn" data-filter="online" data-target="devices-page">Online</button>
+              <button class="filter-btn" data-filter="idle" data-target="devices-page">Idle</button>
+              <button class="filter-btn" data-filter="offline" data-target="devices-page">Offline</button>
+            </div>
+          </div>
+        </div>
+        <div class="data-table-wrapper">
+          <table class="data-table" id="devicesPageTable">
+            <thead>
+              <tr>
+                <th data-sort="name">Device <span class="sort-icon">↕</span></th>
+                <th data-sort="ip">IP Address <span class="sort-icon">↕</span></th>
+                <th data-sort="mac">MAC Address <span class="sort-icon">↕</span></th>
+                <th data-sort="status">Status <span class="sort-icon">↕</span></th>
+                <th>VPN</th>
+                <th>OS</th>
+                <th>App Version</th>
+                <th data-sort="total_queries">Total Queries <span class="sort-icon">↕</span></th>
+                <th data-sort="blocked_queries">Blocked <span class="sort-icon">↕</span></th>
+                <th>Domain Terakhir</th>
+                <th data-sort="last_seen">Last Seen <span class="sort-icon">↕</span></th>
+              </tr>
+            </thead>
+            <tbody id="devicesPageBody">
+              <!-- Populated by JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─────── WEBSITES PAGE ─────── -->
+    <section class="page-section" id="page-websites">
+      <div class="page-header">
+        <h1>🌐 Website Baru / Belum di Dataset</h1>
+        <p>Domain yang terdeteksi oleh device namun belum tercatat pada dataset training</p>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header">
+          <h2 class="panel-title"><span class="panel-icon">🌐</span> Website Baru <span class="panel-badge" id="websitesPageCount">0</span></h2>
+          <div class="panel-actions">
+            <div class="panel-search">
+              <span class="search-icon">🔍</span>
+              <input type="text" id="websitesSearch" placeholder="Cari domain, judul..." autocomplete="off">
+            </div>
+            <div class="filter-group">
+              <button class="filter-btn active" data-filter="all" data-target="websites-page-status">All</button>
+              <button class="filter-btn" data-filter="pending_review" data-target="websites-page-status">⏳ Pending</button>
+              <button class="filter-btn" data-filter="added_to_dataset" data-target="websites-page-status">📥 Added</button>
+              <button class="filter-btn" data-filter="verified" data-target="websites-page-status">✅ Verified</button>
+            </div>
+            <div class="filter-group">
+              <button class="filter-btn active" data-filter="all" data-target="websites-page-cat">All</button>
+              <button class="filter-btn" data-filter="gambling" data-target="websites-page-cat">🎰 Gambling</button>
+              <button class="filter-btn" data-filter="legitimate" data-target="websites-page-cat">✅ Legit</button>
+            </div>
+          </div>
+        </div>
+        <div class="data-table-wrapper">
+          <table class="data-table" id="websitesPageTable">
+            <thead>
+              <tr>
+                <th data-sort="domain">Domain <span class="sort-icon">↕</span></th>
+                <th>Judul</th>
+                <th data-sort="source_device">Device Asal <span class="sort-icon">↕</span></th>
+                <th data-sort="ml_score">ML Score <span class="sort-icon">↕</span></th>
+                <th data-sort="category">Kategori <span class="sort-icon">↕</span></th>
+                <th data-sort="status">Status <span class="sort-icon">↕</span></th>
+                <th data-sort="detected_at">Terdeteksi <span class="sort-icon">↕</span></th>
+                <th>Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="websitesPageBody">
+              <!-- Populated by JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─────── DATASET PAGE ─────── -->
+    <section class="page-section" id="page-dataset">
+      <div class="page-header">
+        <h1>📚 Dataset Explorer</h1>
+        <p>Cari dan telusuri dataset training model (final_dataset.csv)</p>
+      </div>
+
+      <div class="dataset-search-bar">
+        <div class="dataset-search-container">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="datasetSearchInput" placeholder="Cari URL atau judul website di dataset..." autocomplete="off">
+        </div>
+        <div class="filter-group">
+          <button class="filter-btn active" data-filter="" data-target="dataset-label">All</button>
+          <button class="filter-btn" data-filter="1" data-target="dataset-label">🎰 Gambling</button>
+          <button class="filter-btn" data-filter="0" data-target="dataset-label">✅ Legit</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header">
+          <h2 class="panel-title"><span class="panel-icon">📚</span> Hasil Pencarian <span class="panel-badge" id="datasetResultCount">0</span></h2>
+        </div>
+        <div class="data-table-wrapper">
+          <table class="data-table" id="datasetTable">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>URL</th>
+                <th>Label</th>
+                <th>Judul</th>
+              </tr>
+            </thead>
+            <tbody id="datasetBody">
+              <tr>
+                <td colspan="4">
+                  <div class="state-container">
+                    <div class="state-icon">🔍</div>
+                    <div class="state-title">Ketik untuk mencari</div>
+                    <div class="state-text">Masukkan URL atau kata kunci pada kolom pencarian di atas untuk menelusuri dataset</div>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ═══════════════ MODAL ═══════════════ -->
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal" id="modalContent">
+      <div class="modal-header">
+        <h3 class="modal-title" id="modalTitle">Detail</h3>
+        <button class="modal-close" id="modalClose">✕</button>
+      </div>
+      <div class="modal-body" id="modalBody">
+        <!-- Populated by JS -->
+      </div>
+    </div>
+  </div>
+
+  <script src="/app.js"></script>
+</body>
+</html>
