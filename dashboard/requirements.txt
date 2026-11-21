@@ -3,3 +3,11 @@
 
 flask>=3.0.0
 pandas>=1.5.0
+
+# ─── Opsional: screenshot halaman penuh untuk fitur "Add ke dataset" ─────────
+# Tanpa paket ini, fitur Add tetap berjalan: HTML tetap diunduh dan gambar
+# diambil dari og:image/favicon sebagai fallback. Pasang jika ingin screenshot
+# penuh otomatis:
+#   pip install playwright
+#   python -m playwright install chromium
+# playwright>=1.40.0

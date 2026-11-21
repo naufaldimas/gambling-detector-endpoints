@@ -23,6 +23,8 @@ from flask import Flask, jsonify, send_from_directory, request
 # Add parent directory to path so we can import from ml-training if needed
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'ml-training'))
 
+import dataset_ingest
+
 app = Flask(__name__, static_folder='static', static_url_path='')
 
 # ─── Configuration ──────────────────────────────────────────────────────────
@@ -313,6 +315,54 @@ def api_dataset_search():
         'total': len(results),
         'showing': len(paginated_results),
     })
+
+
+@app.route('/api/dataset/add', methods=['POST'])
+def api_dataset_add():
+    """Tambahkan sebuah URL ke dataset pelatihan.
+
+    Body JSON:
+      { "url": "https://contoh.xyz", "label": 1 }
+      - label: 1 = gambling, 0 = legit (default 1)
+
+    Proses: unduh HTML -> dataset_html/<label>/<ID>.html,
+            ambil gambar -> dataset_image/<label>/<ID>.jpg (jika bisa),
+            append baris ke final_dataset.csv.
+    """
+    data = request.get_json(force=True, silent=True) or {}
+    url = (data.get('url') or '').strip()
+    label = data.get('label', 1)
+
+    if not url:
+        return jsonify({'success': False, 'error': 'Parameter "url" wajib diisi'}), 400
+    try:
+        label = int(label)
+    except (TypeError, ValueError):
+        return jsonify({'success': False, 'error': 'Parameter "label" harus 0 atau 1'}), 400
+    if label not in (0, 1):
+        return jsonify({'success': False, 'error': 'Parameter "label" harus 0 atau 1'}), 400
+
+    try:
+        result = dataset_ingest.add_url_to_dataset(url, label)
+    except ValueError as e:
+        return jsonify({'success': False, 'error': str(e)}), 400
+    except Exception as e:
+        print(f"[ERROR] dataset add failed: {e}")
+        return jsonify({'success': False, 'error': f'Gagal menambahkan ke dataset: {e}'}), 500
+
+    # Invalidasi cache dataset agar statistik & pencarian ikut terbarui
+    global _dataset_cache, _dataset_loaded_at
+    _dataset_cache = None
+    _dataset_loaded_at = None
+
+    # Jika URL ini berasal dari daftar "website baru", tandai sudah ditambahkan
+    domain = dataset_ingest.url_to_domain(url)
+    for w in REAL_NEW_WEBSITES:
+        if w.get('domain') == domain or w.get('full_url') == url:
+            w['status'] = 'added_to_dataset'
+            break
+
+    return jsonify({'success': True, 'entry': result})
 
 
 @app.route('/api/websites/<website_id>/status', methods=['POST'])

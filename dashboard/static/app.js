@@ -103,6 +103,14 @@ async function updateWebsiteStatus(id, newStatus) {
   });
 }
 
+async function addToDataset(url, label) {
+  return await apiFetch('/dataset/add', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ url, label }),
+  });
+}
+
 // ─── Rendering: Stats Cards ────────────────────────────────────────────────
 
 function renderStats() {
@@ -311,7 +319,7 @@ function renderWebsitesPage() {
         <div class="action-btn-group">
           <button class="action-btn" onclick="showWebsiteDetail('${escapeHtml(w.id)}')">👁 Detail</button>
           ${w.status === 'pending_review' ? `
-            <button class="action-btn btn-success" onclick="markWebsite('${escapeHtml(w.id)}', 'added_to_dataset')">📥 Add</button>
+            <button class="action-btn btn-success" onclick="addWebsiteToDataset('${escapeHtml(w.id)}', this)">📥 Add</button>
             <button class="action-btn btn-danger" onclick="markWebsite('${escapeHtml(w.id)}', 'dismissed')">✕</button>
           ` : ''}
         </div>
@@ -653,6 +661,66 @@ async function markWebsite(id, newStatus) {
     renderInfoPanels();
   } catch (err) {
     console.error('Failed to update website status:', err);
+  }
+}
+
+/**
+ * Tambahkan website (dari daftar "website baru") ke dataset pelatihan.
+ * Memanggil /api/dataset/add yang mengunduh HTML + gambar dan menulis baris
+ * ke final_dataset.csv. Backend juga otomatis menandai status menjadi
+ * 'added_to_dataset'. Memberi feedback pada tombol selama proses berjalan.
+ */
+async function addWebsiteToDataset(id, btn) {
+  const w = state.websites.find(web => web.id === id);
+  if (!w) return;
+
+  // URL lengkap bila ada, jika tidak pakai domain
+  const url = w.full_url || w.domain;
+  if (!url) {
+    console.error('Website tidak punya URL/domain:', id);
+    return;
+  }
+  // Kategori 'gambling' -> label 1, selain itu -> 0
+  const label = w.category === 'gambling' ? 1 : 0;
+
+  // Feedback UI: nonaktifkan tombol selama proses
+  let originalText = null;
+  if (btn) {
+    originalText = btn.textContent;
+    btn.disabled = true;
+    btn.style.opacity = '0.6';
+    btn.style.cursor = 'wait';
+    btn.textContent = '⏳ Menambahkan…';
+  }
+
+  try {
+    const res = await addToDataset(url, label);
+    if (!res || res.success === false) {
+      throw new Error((res && res.error) || 'Gagal menambahkan ke dataset');
+    }
+
+    const entry = res.entry || {};
+    const notes = [];
+    if (!entry.has_html) notes.push('HTML gagal diunduh');
+    if (!entry.has_image) notes.push('gambar tidak tersedia');
+    const suffix = notes.length ? ` (${notes.join(', ')})` : '';
+    console.info(`Ditambahkan ke dataset sebagai ${entry.id}${suffix}`);
+
+    // Refresh daftar website + statistik dataset (cache sudah diinvalidasi backend)
+    await fetchWebsites();
+    renderWebsitesPage();
+    await fetchStats();
+    renderStats();
+    renderInfoPanels();
+  } catch (err) {
+    console.error('Gagal menambahkan website ke dataset:', err);
+    // Kembalikan tombol agar bisa dicoba lagi
+    if (btn) {
+      btn.disabled = false;
+      btn.style.opacity = '';
+      btn.style.cursor = '';
+      if (originalText !== null) btn.textContent = originalText;
+    }
   }
 }
 
